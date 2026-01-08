@@ -124,7 +124,9 @@ export async function GET(request: NextRequest) {
                 const sourceValue = embySources.length === 1 ? 'emby' : `emby_${embyConfig.key}`;
                 const sourceName = embySources.length === 1 ? 'Emby' : embyConfig.name;
 
-                const results = searchResult.Items.map((item) => ({
+                // 添加安全检查，确保 Items 存在且是数组
+                const items = Array.isArray(searchResult?.Items) ? searchResult.Items : [];
+                const results = items.map((item) => ({
                   id: item.Id,
                   source: sourceValue,
                   source_name: sourceName,
@@ -258,19 +260,21 @@ export async function GET(request: NextRequest) {
           .then((openlistResults: any) => {
             completedSources++;
             if (!streamClosed) {
+              // 添加安全检查，确保结果是数组
+              const safeResults = Array.isArray(openlistResults) ? openlistResults : [];
               const sourceEvent = `data: ${JSON.stringify({
                 type: 'source_result',
                 source: 'openlist',
                 sourceName: '私人影库',
-                results: openlistResults,
+                results: safeResults,
                 timestamp: Date.now()
               })}\n\n`;
               if (!safeEnqueue(encoder.encode(sourceEvent))) {
                 streamClosed = true;
                 return;
               }
-              if (openlistResults.length > 0) {
-                allResults.push(...openlistResults);
+              if (safeResults.length > 0) {
+                allResults.push(...safeResults);
               }
             }
           })
@@ -303,10 +307,13 @@ export async function GET(request: NextRequest) {
 
           const results = await searchPromise as any[];
 
+          // 添加安全检查，确保结果是数组
+          const safeResults = Array.isArray(results) ? results : [];
+
           // 过滤黄色内容
-          let filteredResults = results;
+          let filteredResults = safeResults;
           if (!config.SiteConfig.DisableYellowFilter) {
-            filteredResults = results.filter((result) => {
+            filteredResults = safeResults.filter((result) => {
               const typeName = result.type_name || '';
               return !yellowWords.some((word: string) => typeName.includes(word));
             });

@@ -50,50 +50,27 @@ export function processImageUrl(originalUrl: string): string {
     return originalUrl;
   }
 
-  // 获取用户配置的代理设置
   const { proxyType, proxyUrl } = getDoubanImageProxyConfig();
-
-  // 根据代理类型处理URL
   switch (proxyType) {
-    case 'direct':
-      // 直连，不使用代理
-      return originalUrl;
-
     case 'server':
-      // 使用服务器代理
       return `/api/image-proxy?url=${encodeURIComponent(originalUrl)}`;
-
     case 'img3':
-      // 使用 img3.doubanio.com 代理
-      return originalUrl.replace(/img\d\.doubanio\.com/g, 'img3.doubanio.com');
-
+      return originalUrl.replace(/img\d+\.doubanio\.com/g, 'img3.doubanio.com');
     case 'cmliussss-cdn-tencent':
-      // 使用腾讯云CDN代理
       return originalUrl.replace(
-        /https?:\/\/img\d\.doubanio\.com/g,
-        'https://douban-img.cmliussss.workers.dev'
+        /img\d+\.doubanio\.com/g,
+        'img.doubanio.cmliussss.net'
       );
-
     case 'cmliussss-cdn-ali':
-      // 使用阿里云CDN代理
       return originalUrl.replace(
-        /https?:\/\/img\d\.doubanio\.com/g,
-        'https://douban-img-ali.cmliussss.workers.dev'
+        /img\d+\.doubanio\.com/g,
+        'img.doubanio.cmliussss.com'
       );
-
     case 'custom':
-      // 使用自定义代理
-      if (proxyUrl) {
-        return originalUrl.replace(/https?:\/\/img\d\.doubanio\.com/g, proxyUrl);
-      }
-      return originalUrl;
-
+      return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+    case 'direct':
     default:
-      // 默认使用腾讯云CDN代理
-      return originalUrl.replace(
-        /https?:\/\/img\d\.doubanio\.com/g,
-        'https://douban-img.cmliussss.workers.dev'
-      );
+      return originalUrl;
   }
 }
 

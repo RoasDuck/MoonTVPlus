@@ -175,13 +175,17 @@ export async function GET(request: NextRequest) {
     ]);
 
     // 分离结果：第一个是 openlist，接下来是 emby 结果，最后是 api 结果
-    const openlistResults = allResults[0];
+    // 添加安全检查，确保即使某个结果处理出错也不影响其他结果
+    const openlistResults = Array.isArray(allResults[0]) ? allResults[0] : [];
     const embyResultsArray = allResults.slice(1, 1 + embyPromises.length);
     const apiResults = allResults.slice(1 + embyPromises.length);
 
-    // 合并所有 Emby 结果
-    const embyResults = embyResultsArray.flat();
-    let flattenedResults = [...openlistResults, ...embyResults, ...apiResults.flat()];
+    // 合并所有 Emby 结果，添加安全检查
+    const embyResults = embyResultsArray.filter(Array.isArray).flat();
+    const apiResultsFlat = apiResults.filter(Array.isArray).flat();
+
+    let flattenedResults = [...openlistResults, ...embyResults, ...apiResultsFlat];
+
     if (!config.SiteConfig.DisableYellowFilter) {
       flattenedResults = flattenedResults.filter((result) => {
         const typeName = result.type_name || '';
@@ -207,6 +211,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
+    console.error('[Search] 搜索结果处理失败:', error);
     return NextResponse.json({ error: '搜索失败' }, { status: 500 });
   }
 }
