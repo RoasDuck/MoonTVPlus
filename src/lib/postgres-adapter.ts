@@ -77,8 +77,8 @@ class PostgresPreparedStatement implements D1PreparedStatement {
     try {
       const convertedQuery = this.convertQuery(this.query);
 
-      // 使用 Vercel Postgres 的 unsafe 方法执行参数化查询
-      const result = await sql.unsafe(convertedQuery, this.params);
+      // 使用 Vercel Postgres 的 query 方法执行参数化查询
+      const result = await sql.query(convertedQuery, this.params);
 
       if (!result || result.rows.length === 0) return null;
 
@@ -100,7 +100,7 @@ class PostgresPreparedStatement implements D1PreparedStatement {
     try {
       const convertedQuery = this.convertQuery(this.query);
 
-      const result = await sql.unsafe(convertedQuery, this.params);
+      const result = await sql.query(convertedQuery, this.params);
 
       return {
         success: true,
@@ -126,7 +126,7 @@ class PostgresPreparedStatement implements D1PreparedStatement {
     try {
       const convertedQuery = this.convertQuery(this.query);
 
-      const result = await sql.unsafe(convertedQuery, this.params);
+      const result = await sql.query(convertedQuery, this.params);
 
       return {
         success: true,

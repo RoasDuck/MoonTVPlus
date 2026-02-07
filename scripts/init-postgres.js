@@ -30,7 +30,17 @@ async function init() {
   try {
     // 执行 schema 创建
     console.log('🔧 Creating database schema...');
-    await sql.unsafe(schemaSql);
+
+    // 将 SQL 脚本按语句分割并逐个执行
+    const statements = schemaSql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    for (const statement of statements) {
+      await sql.query(statement);
+    }
+
     console.log('✅ Database schema created successfully!');
 
     // 创建默认管理员用户
